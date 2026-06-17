@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ПРОСТО ТЕНТ — Премиальные каркасно-тентовые конструкции</title>
+<style>
+  :root {
+    --accent: #C8A45C;
+    --accent-rgb: 200, 164, 92;
+    --dark: #1E1814;
+    --surface: rgba(30, 24, 20, 0.65);
+    --surface-hover: rgba(200, 164, 92, 0.08);
+    --text: #fff;
+    --text-dim: rgba(255, 255, 255, 0.55);
+    --text-faint: rgba(255, 255, 255, 0.3);
+    --border: rgba(255, 255, 255, 0.06);
+    --border-accent: rgba(200, 164, 92, 0.2);
+    --font: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: auto; }
+  body {
+    font-family: var(--font);
+    background: #000;
+    color: var(--text);
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* ─── Hero Scroll Video ─── */
+  .hero-video-container {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .hero-video-container video {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    opacity: 0.6; /* Затенение чтобы текст читался */
+  }
+  
+  /* ─── WebGL Canvas ─── */
+  #bg {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    z-index: 0; /* Под видео, если мы его отключаем, или над ним */
+    pointer-events: none;
+    display: none; /* Скрываем горы, так как просили видео на фон */
+  }
+
+  /* ─── Content Overlay ─── */
+  .content { position: relative; z-index: 1; }
+
+  /* ─── Cursor Styles ─── */
+  .custom-cursor {
+    position: fixed;
+    top: 0; left: 0;
+    width: 40px; height: 40px;
+    border: 1px solid var(--accent);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: width 0.3s, height 0.3s, background-color 0.3s;
+    mix-blend-mode: difference;
+  }
+  .custom-cursor.hover {
+    width: 60px; height: 60px;
+    background-color: rgba(200, 164, 92, 0.2);
+  }
+  .custom-cursor-dot {
+    position: fixed;
+    top: 0; left: 0;
+    width: 6px; height: 6px;
+    background-color: var(--accent);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 10000;
+    transform: translate(-50%, -50%);
+  }
+
+  /* ─── Hide default cursor ─── */
+  @media (pointer: fine) {
+    body, a, button, input, textarea, .feature-card, .gallery-item {
+      cursor: none !important;
+    }
+  }
+
+  /* ─── Header ─── */
+  .header {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    padding: 20px 48px;
+    display: flex; justify-content: space-between; align-items: center;
+    transition: background 0.5s, backdrop-filter 0.5s;
+  }
+  .header.scrolled {
+    background: rgba(30, 24, 20, 0.82);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+  }
+  .header-logo {
+    font-weight: 800; font-size: 22px; letter-spacing: 3px;
+    color: var(--text); text-decoration: none;
+  }
+  .header-logo span { color: var(--accent); }
+  .header-phone {
+    color: var(--text-dim); text-decoration: none;
+    font-size: 15px; letter-spacing: 0.5px;
+    transition: color 0.3s;
+  }
+  .header-phone:hover { color: var(--accent); }
+
+  @media (max-width: 640px) {
+    .header { padding: 16px 24px; }
+    .header-logo { font-size: 18px; }
+    .header-phone { font-size: 13px; }
+  }
+
+  /* ─── Hero ─── */
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    text-align: center;
+    padding: 120px 24px 80px;
+  }
+  .hero-badge {
+    display: inline-block;
+    padding: 8px 20px;
+    border: 1px solid var(--border-accent);
+    border-radius: 100px;
+    font-size: 13px; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 32px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    background: rgba(200, 164, 92, 0.06);
+  }
+  .hero h1 {
+    font-size: clamp(44px, 8vw, 88px);
+    font-weight: 300; line-height: 1.04; letter-spacing: -2px;
+    margin-bottom: 20px;
+    max-width: 900px;
+  }
+  .hero h1 strong {
+    display: block;
+    font-weight: 800;
+    color: var(--accent);
+    font-size: clamp(32px, 5vw, 56px);
+    letter-spacing: -1px;
+  }
+  .hero p {
+    font-size: 18px; max-width: 580px;
+    color: var(--text-dim); line-height: 1.7;
+    margin-bottom: 48px;
+  }
+  .hero-cta {
+    padding: 18px 52px;
+    background: var(--accent);
+    color: #1E1814;
+    font-weight: 700; font-size: 17px;
+    border-radius: 100px;
+    text-decoration: none; letter-spacing: 1px;
+    transition: all 0.35s;
+    display: inline-block;
+    border: none; cursor: pointer;
+    font-family: var(--font);
+  }
+  .hero-cta:hover {
+    transform: scale(1.06);
+    box-shadow: 0 0 48px rgba(var(--accent-rgb), 0.45);
+  }
+
+  /* ─── Sections ─── */
+  .section {
+    padding: 100px 48px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .section-label {
+    font-size: 12px; letter-spacing: 4px;
+    color: var(--accent); margin-bottom: 16px;
+    text-transform: uppercase;
+  }
+  .section h2 {
+    font-size: clamp(32px, 5vw, 54px);
+    font-weight: 300; letter-spacing: -1px;
+    margin-bottom: 32px; line-height: 1.15;
+  }
+
+  /* ─── Feature Grid ─── */
+  .features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 4px;
+    max-width: 1000px;
+    margin: 0 auto 80px;
+    padding: 0 48px;
+  }
+  .feature-card {
+    background: var(--surface);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px 32px;
+    transition: all 0.45s;
+    cursor: default;
+  }
+  .feature-card:hover {
+    background: var(--surface-hover);
+    border-color: var(--border-accent);
+    transform: translateY(-6px);
+  }
+  .feature-card .icon {
+    font-size: 32px; margin-bottom: 20px; display: block;
+  }
+  .feature-card h3 {
+    font-size: 20px; font-weight: 700; margin-bottom: 12px;
+    color: var(--accent);
+  }
+  .feature-card p {
+    font-size: 15px; color: var(--text-dim);
+    line-height: 1.65;
+  }
+
+  /* ─── Feature Card Fly-In ─── */
+  .feature-card {
+    opacity: 0;
+    transform: translateY(60px);
+    transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+                transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .feature-card.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .feature-card:nth-child(1) { transition-delay: 0.05s; }
+  .feature-card:nth-child(2) { transition-delay: 0.16s; }
+  .feature-card:nth-child(3) { transition-delay: 0.27s; }
+  .feature-card:nth-child(4) { transition-delay: 0.38s; }
+  .feature-card.visible:nth-child(1) { transition-delay: 0.05s; }
+  .feature-card.visible:nth-child(2) { transition-delay: 0.16s; }
+  .feature-card.visible:nth-child(3) { transition-delay: 0.27s; }
+  .feature-card.visible:nth-child(4) { transition-delay: 0.38s; }
+
+  /* ─── Fixed Rotating Product Image ─── */
+  .fixed-product {
+    position: fixed;
+    right: -40px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    width: 340px;
+    height: 255px;
+    perspective: 800px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.6s;
+  }
+  .fixed-product.visible {
+    opacity: 1;
+  }
+  .fixed-product-inner {
+    width: 100%; height: 100%;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--border-accent);
+    box-shadow: 0 16px 60px rgba(0,0,0,0.6), 0 0 40px rgba(200,164,92,0.12);
+    background: #0A0806;
+  }
+  .fixed-product-inner img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  @media (max-width: 1024px) {
+    .fixed-product { display: none; }
+  }
+
+  /* ─── Use Cases ─── */
+  .usecases {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 4px;
+    max-width: 1000px;
+    margin: 48px auto 0;
+    padding: 0 48px;
+  }
+  .usecase-item {
+    background: var(--surface);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px 28px;
+    text-align: center;
+    transition: all 0.4s;
+  }
+  .usecase-item:hover {
+    border-color: var(--border-accent);
+    transform: translateY(-4px);
+  }
+  .usecase-item .uc-icon { font-size: 40px; display: block; margin-bottom: 12px; }
+  .usecase-item h4 { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+  .usecase-item p { font-size: 13px; color: var(--text-dim); line-height: 1.5; }
+
+  /* ─── Gallery ─── */
+  .gallery-section { padding: 80px 24px 40px; }
+  .gallery-subsection { margin-top: 80px; }
+  .gallery-subtitle {
+    text-align: center;
+    font-size: clamp(28px, 4vw, 42px);
+    font-weight: 800;
+    color: var(--accent);
+    margin-bottom: 40px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    text-shadow: 0 4px 20px rgba(200, 164, 92, 0.4);
+    /* Подготовка для эффекта SplitText */
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    overflow: hidden;
+  }
+  /* Будем разбивать заголовок на слова через JS, каждое слово обернуто в span */
+  .gallery-subtitle span {
+    display: inline-block;
+    will-change: transform, opacity;
+  }
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 6px;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+  .gallery-item {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    aspect-ratio: 4 / 3;
+    background: var(--surface);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    transition: all 0.5s;
+    cursor: pointer;
+  }
+  .gallery-item:hover {
+    border-color: var(--border-accent);
+    transform: scale(1.03);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+  }
+  .gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.6s;
+  }
+  .gallery-item:hover img {
+    transform: scale(1.08);
+  }
+  .gallery-item .gallery-label {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 16px 20px;
+    background: linear-gradient(transparent, rgba(30,24,20,0.9));
+    font-size: 14px; font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.5px;
+  }
+  @media (max-width: 768px) {
+    .gallery-grid { grid-template-columns: 1fr; padding: 0 16px; }
+    .gallery-section { padding: 60px 16px 20px; }
+  }
+
+  /* ─── CTA Form ─── */
+  .cta-section { text-align: center; }
+  .cta-form {
+    display: flex; flex-direction: column; gap: 16px;
+    max-width: 420px; margin: 0 auto;
+  }
+  .cta-form input,
+  .cta-form textarea {
+    padding: 16px 24px;
+    border-radius: 100px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(30, 24, 20, 0.5);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: var(--text);
+    font-size: 16px; outline: none;
+    transition: all 0.3s;
+    font-family: var(--font);
+  }
+  .cta-form textarea {
+    border-radius: 20px; min-height: 110px;
+    resize: vertical;
+  }
+  .cta-form input:focus,
+  .cta-form textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 24px rgba(var(--accent-rgb), 0.18);
+  }
+  .cta-form input::placeholder,
+  .cta-form textarea::placeholder {
+    color: rgba(255, 255, 255, 0.28);
+  }
+  .cta-submit {
+    padding: 18px 48px;
+    background: var(--accent);
+    color: #1E1814;
+    font-weight: 700; font-size: 16px;
+    border-radius: 100px;
+    border: none; cursor: pointer;
+    letter-spacing: 1px;
+    transition: all 0.35s;
+    font-family: var(--font);
+    margin-top: 8px;
+  }
+  .cta-submit:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 48px rgba(var(--accent-rgb), 0.4);
+  }
+
+  /* ─── Footer ─── */
+  .footer {
+    text-align: center;
+    padding: 60px 24px;
+    color: var(--text-faint);
+    font-size: 14px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ─── Responsive ─── */
+  @media (max-width: 768px) {
+    .section { padding: 80px 24px; }
+    .features { padding: 0 24px; }
+    .usecases { padding: 0 24px; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+    .feature-card { padding: 32px 24px; }
+    .usecase-item { padding: 24px 20px; }
+    .hero { padding: 100px 20px 60px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero-video-container">
+  <video id="heroScrollVideo" src="assets/Атриум вертикалные.mp4" muted playsinline></video>
+</div>
+
+<canvas id="bg"></canvas>
+
+<!-- Fixed rotating product image -->
+<div class="fixed-product" id="fixedProduct" style="display: none;">
+  <div class="fixed-product-inner" id="fixedProductInner">
+    <video src="assets/атриум видео.mp4" autoplay loop muted playsinline style="width: 100%; height: 100%; object-fit: cover; display: block;"></video>
+  </div>
+</div>
+
+<header class="header" id="header">
+  <a href="#" class="header-logo">ПРОСТО<span>ТЕНТ</span></a>
+  <a href="tel:+78000000000" class="header-phone">8 800 000-00-00</a>
+</header>
+
+<div class="content">
+
+  <!-- ═══ HERO ═══ -->
+  <section class="hero">
+    <div class="hero-badge">Каркасно-тентовые конструкции</div>
+    <h1>Премиальные архитектурные<br><strong>ивент-павильоны и шатры</strong></h1>
+    <p>Эстетика, надежность и скорость. Создаем уникальные пространства для масштабных мероприятий, форумов и частных событий.</p>
+    <a href="#cta" class="hero-cta">Получить расчёт</a>
+  </section>
+
+  <!-- ═══ FEATURES ═══ -->
+  <section class="section">
+    <div class="section-label">Преимущества</div>
+    <h2>Почему выбирают<br>наши павильоны</h2>
+  </section>
+
+  <div class="features">
+    <div class="feature-card">
+      <span class="icon">✨</span>
+      <h3>Премиальный дизайн</h3>
+      <p>Стильная архитектура, панорамное остекление и современные материалы создают атмосферу роскоши на любом событии.</p>
+    </div>
+    <div class="feature-card">
+      <span class="icon">🏗️</span>
+      <h3>Надежная конструкция</h3>
+      <p>Усиленный алюминиевый профиль выдерживает экстремальные ветровые и снеговые нагрузки. Безопасность превыше всего.</p>
+    </div>
+    <div class="feature-card">
+      <span class="icon">🌡️</span>
+      <h3>Всесезонность</h3>
+      <p>Системы климат-контроля, двойные тенты и качественное утепление позволяют комфортно проводить мероприятия даже зимой.</p>
+    </div>
+    <div class="feature-card">
+      <span class="icon">⚡</span>
+      <h3>Быстрый монтаж</h3>
+      <p>Возведение павильона от 1 дня в любой локации, без фундамента. Быстро монтируем и демонтируем без следов.</p>
+    </div>
+  </div>
+
+  <!-- ═══ GALLERY ═══ -->
+  <section class="gallery-section">
+    <div class="section" style="padding-bottom:0">
+      <div class="section-label">Галерея</div>
+      <h2>Посмотрите, как это<br>выглядит вживую</h2>
+    </div>
+    
+    <!-- Подблок 1 -->
+    <div class="gallery-subsection">
+      <h3 class="gallery-subtitle">Атриум павильоны с горизонтальным остеклением</h3>
+      <div class="gallery-grid">
+        <div class="gallery-item">
+          <img src="assets/Атриум Брендовый.jpg" alt="Атриум Брендовый" loading="lazy">
+          <div class="gallery-label">Атриум Брендовый</div>
+        </div>
+        <div class="gallery-item">
+          <img src="assets/Атриум КПП КИФ.png" alt="Атриум КПП КИФ" loading="lazy">
+          <div class="gallery-label">Атриум КПП КИФ</div>
+        </div>
+        <div class="gallery-item">
+          <img src="assets/Атриум Краснодар 2.jpg" alt="Атриум Краснодар" loading="lazy">
+          <div class="gallery-label">Атриум Краснодар</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Подблок 2 -->
+    <div class="gallery-subsection">
+      <h3 class="gallery-subtitle">Solution павильон с вертикальным остеклением</h3>
+      <div class="gallery-grid">
+        <div class="gallery-item">
+          <img src="assets/Солюшен пресс центр 2.jpeg" alt="Солюшен пресс центр 2" loading="lazy">
+          <div class="gallery-label">Солюшен пресс центр 2</div>
+        </div>
+        <div class="gallery-item">
+          <img src="assets/Солюшен пресс центр.jpeg" alt="Солюшен пресс центр" loading="lazy">
+          <div class="gallery-label">Солюшен пресс центр</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Подблок 3 -->
+    <div class="gallery-subsection">
+      <h3 class="gallery-subtitle">Cupola</h3>
+      <div class="gallery-grid">
+        <div class="gallery-item">
+          <img src="assets/Купалы ВЭФ.png" alt="Купалы ВЭФ" loading="lazy">
+          <div class="gallery-label">Купалы ВЭФ</div>
+        </div>
+        <div class="gallery-item">
+          <img src="assets/Купалы - 2 - Атом Экспо.jpg" alt="Купалы - Атом Экспо" loading="lazy">
+          <div class="gallery-label">Купалы - Атом Экспо</div>
+        </div>
+        <div class="gallery-item">
+          <img src="assets/Купалы ВЭФ2.jpg" alt="Купалы ВЭФ 2" loading="lazy">
+          <div class="gallery-label">Купалы ВЭФ 2</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ USE CASES ═══ -->
+  <section class="section">
+    <div class="section-label">Применение</div>
+    <h2>Одна конструкция —<br>десятки сценариев</h2>
+  </section>
+
+  <div class="usecases">
+    <div class="usecase-item">
+      <span class="uc-icon">🍽️</span>
+      <h4>Летние кафе</h4>
+      <p>Уютные террасы ресторанов с премиальной эстетикой дерева</p>
+    </div>
+    <div class="usecase-item">
+      <span class="uc-icon">🚗</span>
+      <h4>Автостоянки</h4>
+      <p>Крытые парковки и навесы для техники любого размера</p>
+    </div>
+    <div class="usecase-item">
+      <span class="uc-icon">🎪</span>
+      <h4>Ивент-павильоны</h4>
+      <p>Премиальные пространства для фестивалей, свадеб, корпоративов и выставок под ключ</p>
+    </div>
+    <div class="usecase-item">
+      <span class="uc-icon">🏡</span>
+      <h4>Частные террасы</h4>
+      <p>Беседки, зоны барбекю и патио — вид дорогого дерева без ухода</p>
+    </div>
+    <div class="usecase-item">
+      <span class="uc-icon">🎉</span>
+      <h4>Мероприятия</h4>
+      <p>Временные павильоны для фестивалей, ярмарок и корпоративов</p>
+    </div>
+    <div class="usecase-item">
+      <span class="uc-icon">🏢</span>
+      <h4>Pop-up пространства</h4>
+      <p>Шоурумы, мобильные точки продаж и выставочные стенды в любой локации</p>
+    </div>
+  </div>
+
+  <!-- ═══ CTA ═══ -->
+  <section class="section cta-section" id="cta">
+    <div class="section-label">Заявка</div>
+    <h2>Рассчитаем проект<br>за 24 часа</h2>
+    <p style="color:var(--text-dim);margin-bottom:40px;max-width:480px;margin-left:auto;margin-right:auto;line-height:1.6;">
+      Оставьте заявку — подготовим 3D-визуализацию и смету под ваши размеры и задачи. Бесплатно.
+    </p>
+    <form class="cta-form" id="cta-form">
+      <input type="text" placeholder="Ваше имя" required>
+      <input type="tel" placeholder="Телефон" required>
+      <textarea placeholder="Опишите задачу: размеры, назначение, пожелания по стилю..."></textarea>
+      <button type="submit" class="cta-submit">Отправить заявку</button>
+    </form>
+    <p style="margin-top:20px;font-size:13px;color:var(--text-faint);">
+      Или позвоните: <a href="tel:+78000000000" style="color:var(--accent);text-decoration:none;">8 800 000-00-00</a>
+    </p>
+  </section>
+
+  <footer class="footer">
+    <p>© 2025 ПРОСТО ТЕНТ. Алюминиевые каркасно-тентовые конструкции. Все права защищены.</p>
+  </footer>
+
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- Three.js Import Map                         -->
+<!-- ═══════════════════════════════════════════ -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
+    "gsap": "https://unpkg.com/gsap@3.12.5/index.js",
+    "gsap/ScrollTrigger": "https://unpkg.com/gsap@3.12.5/ScrollTrigger.js"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { BokehPass } from 'three/addons/postprocessing/BokehPass.js';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
+
+// ─── Custom Cursor ───
+const cursor = document.createElement('div');
+cursor.className = 'custom-cursor';
+document.body.appendChild(cursor);
+const cursorDot = document.createElement('div');
+cursorDot.className = 'custom-cursor-dot';
+document.body.appendChild(cursorDot);
+
+let cursorX = 0, cursorY = 0;
+let dotX = 0, dotY = 0;
+
+window.addEventListener('mousemove', (e) => {
+  cursorX = e.clientX;
+  cursorY = e.clientY;
+  gsap.to(cursorDot, { x: cursorX, y: cursorY, duration: 0.1 });
+  
+  // Three.js mouse interaction
+  mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+  mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+});
+
+gsap.ticker.add(() => {
+  dotX += (cursorX - dotX) * 0.2;
+  dotY += (cursorY - dotY) * 0.2;
+  gsap.set(cursor, { x: dotX, y: dotY });
+});
+
+document.querySelectorAll('a, button, .feature-card, .gallery-item, .usecase-item').forEach(el => {
+  el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
+  el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
+});
+
+// ─── Two-Color Theme ───
+const MOUNTAIN_COLOR = new THREE.Color('#1E1814');
+const ATMOSPHERE_COLOR = new THREE.Color('#C8A45C');
+const GODRAY_COLOR = 0xC8A45C;
+
+// ─── Scene Setup ───
+const canvas = document.getElementById('bg');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#0A0806');
+scene.fog = new THREE.Fog('#0A0806', 15, 70);
+
+const camera = new THREE.PerspectiveCamera(
+  55,
+  window.innerWidth / window.innerHeight,
+  0.5,
+  200
+);
+camera.position.set(0, 6, 18);
+camera.lookAt(0, 2, -10);
+
+// ─── Lighting ───
+scene.add(new THREE.AmbientLight(0x2A2030, 0.6));
+const atmosphereLight = new THREE.PointLight(GODRAY_COLOR, 3, 40);
+atmosphereLight.position.set(0, 8, -5);
+scene.add(atmosphereLight);
+
+const rimLight = new THREE.PointLight(0x446688, 1.5, 30);
+rimLight.position.set(15, 3, 10);
+scene.add(rimLight);
+
+// ─── Noise ───
+function noise2D(x, z) {
+  const dot = (ix, iz) => {
+    const r = (ix * 12.9898 + iz * 78.233) * 43758.5453;
+    return Math.sin(r) * 0.5 + 0.5;
+  };
+  const ix = Math.floor(x), iz = Math.floor(z);
+  const fx = x - ix, fz = z - iz;
+  const sx = fx * fx * (3 - 2 * fx);
+  const sz = fz * fz * (3 - 2 * fz);
+  const n00 = dot(ix, iz), n10 = dot(ix + 1, iz);
+  const n01 = dot(ix, iz + 1), n11 = dot(ix + 1, iz + 1);
+  return (
+    (n00 + (n10 - n00) * sx) +
+    ((n01 + (n11 - n01) * sx) - (n00 + (n10 - n00) * sx)) * sz
+  );
+}
+
+function fbm(x, z, octaves = 6) {
+  let v = 0, a = 1, f = 1, m = 0;
+  for (let i = 0; i < octaves; i++) {
+    v += a * noise2D(x * f, z * f);
+    m += a;
+    a *= 0.5;
+    f *= 2.1;
+  }
+  return v / m;
+}
+
+// ─── Procedural Mountains ───
+const W = 60, D = 80, SEG = 220;
+const geom = new THREE.PlaneGeometry(W, D, SEG, SEG);
+const pos = geom.attributes.position;
+
+for (let i = 0; i < pos.count; i++) {
+  const x = pos.getX(i);
+  const y = pos.getY(i);
+
+  // Ridge factor — taller in center, tapering to edges
+  const distFromCenter = Math.abs(x) / (W / 2);
+  const ridgeFactor = 1 - distFromCenter * 0.75;
+
+  // Depth factor — taller peaks further back
+  const depthFactor = (y + D / 2) / D;
+
+  // Main height
+  let h = fbm(x * 0.28, y * 0.16) * 9 * ridgeFactor;
+
+  // Secondary ridge detail
+  h += fbm(x * 0.7, y * 0.4) * 3 * ridgeFactor;
+
+  // Edge falloff
+  h *= 0.5 + depthFactor * 1.0;
+
+  // Base plateau at edges
+  h += (1 - distFromCenter) * 2.5;
+
+  pos.setZ(i, h);
+}
+geom.computeVertexNormals();
+
+const mountainMat = new THREE.MeshStandardMaterial({
+  color: MOUNTAIN_COLOR,
+  roughness: 0.65,
+  metalness: 0.08,
+  flatShading: false,
+});
+const mountains = new THREE.Mesh(geom, mountainMat);
+mountains.rotation.x = -Math.PI / 2.2;
+mountains.position.set(0, -2, 0);
+scene.add(mountains);
+
+// ─── God Rays (Volumetric Light Planes) ───
+const rayGroup = new THREE.Group();
+const rayMaterial = new THREE.MeshBasicMaterial({
+  color: GODRAY_COLOR,
+  transparent: true,
+  opacity: 0.04,
+  depthWrite: false,
+  blending: THREE.AdditiveBlending,
+});
+
+for (let i = 0; i < 22; i++) {
+  const ray = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.4, 14 + Math.random() * 10),
+    rayMaterial
+  );
+  ray.position.set(
+    (Math.random() - 0.5) * W * 0.85,
+    1 + Math.random() * 7,
+    -D / 2 + Math.random() * D * 0.65
+  );
+  ray.rotation.x = Math.random() * 0.35 - 0.18;
+  ray.rotation.z = Math.random() * 0.35 - 0.18;
+  ray.scale.set(
+    0.4 + Math.random() * 1.8,
+    0.3 + Math.random() * 0.9,
+    1
+  );
+  rayGroup.add(ray);
+}
+scene.add(rayGroup);
+
+// ─── Atmospheric Particles ───
+const pCount = 600;
+const pGeom = new THREE.BufferGeometry();
+const pPositions = new Float32Array(pCount * 3);
+for (let i = 0; i < pCount; i++) {
+  pPositions[i * 3] = (Math.random() - 0.5) * W * 1.1;
+  pPositions[i * 3 + 1] = 1 + Math.random() * 14;
+  pPositions[i * 3 + 2] = -D / 2 + Math.random() * D * 1.1;
+}
+pGeom.setAttribute('position', new THREE.BufferAttribute(pPositions, 3));
+const particles = new THREE.Points(
+  pGeom,
+  new THREE.PointsMaterial({
+    color: GODRAY_COLOR,
+    size: 0.09,
+    transparent: true,
+    opacity: 0.25,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+  })
+);
+scene.add(particles);
+
+// ─── Floating Wireframe Geodes (aluminum frame aesthetic) ───
+const geodesGroup = new THREE.Group();
+const geodeMaterial = new THREE.MeshBasicMaterial({
+  color: 0xC8A45C,
+  wireframe: true,
+  transparent: true,
+  opacity: 0.18,
+  depthWrite: false,
+});
+const geodeGeom = new THREE.OctahedronGeometry(1, 0);
+for (let i = 0; i < 14; i++) {
+  const g = new THREE.Mesh(geodeGeom, geodeMaterial.clone());
+  g.position.set(
+    (Math.random() - 0.5) * W * 0.9,
+    2 + Math.random() * 11,
+    -D / 2 + Math.random() * D * 0.7
+  );
+  g.scale.setScalar(0.4 + Math.random() * 1.6);
+  g.userData = {
+    rotSpeed: 0.2 + Math.random() * 0.8,
+    driftX: (Math.random() - 0.5) * 0.015,
+    driftY: (Math.random() - 0.5) * 0.01,
+    driftZ: (Math.random() - 0.5) * 0.02,
+    baseY: g.position.y,
+    baseX: g.position.x,
+    phase: Math.random() * Math.PI * 2,
+  };
+  geodesGroup.add(g);
+}
+scene.add(geodesGroup);
+
+// ─── Sparkle Particles (second layer, brighter) ───
+const sparkCount = 300;
+const sparkGeom = new THREE.BufferGeometry();
+const sparkPos = new Float32Array(sparkCount * 3);
+for (let i = 0; i < sparkCount; i++) {
+  sparkPos[i * 3] = (Math.random() - 0.5) * W * 0.7;
+  sparkPos[i * 3 + 1] = 3 + Math.random() * 10;
+  sparkPos[i * 3 + 2] = -D / 2 + Math.random() * D * 0.7;
+}
+sparkGeom.setAttribute('position', new THREE.BufferAttribute(sparkPos, 3));
+const sparkles = new THREE.Points(
+  sparkGeom,
+  new THREE.PointsMaterial({
+    color: 0xE8D5A3,
+    size: 0.05,
+    transparent: true,
+    opacity: 0.4,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+  })
+);
+scene.add(sparkles);
+
+// ─── Post-Processing (Bokeh DOF) ───
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+
+const bokehPass = new BokehPass(scene, camera, {
+  focus: 18,       // focus distance — will be updated per-frame
+  aperture: 0.0005, // subtle blur — increases with scroll
+  maxblur: 2.0,
+});
+composer.addPass(bokehPass);
+
+// ─── Scroll State ───
+let targetScroll = 0;
+let currentScroll = 0;
+let formEngaged = false;
+
+window.addEventListener('scroll', () => {
+  targetScroll = window.scrollY;
+}, { passive: true });
+
+// ─── Feature Cards Fly-In (IntersectionObserver) ───
+const featureCards = document.querySelectorAll('.feature-card');
+const featObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.15, rootMargin: '0px 0px -30px 0px' });
+featureCards.forEach(card => featObserver.observe(card));
+
+// ─── Fixed Product Image Rotation ───
+const fixedProduct = document.getElementById('fixedProduct');
+const fixedProductInner = document.getElementById('fixedProductInner');
+let productVisible = false;
+
+function updateProductVisibility(scrollY) {
+  const featuresSection = document.querySelector('.features');
+  if (!featuresSection) return;
+  const rect = featuresSection.getBoundingClientRect();
+  const shouldShow = rect.top < window.innerHeight * 0.85 && rect.bottom > 0;
+  if (shouldShow !== productVisible) {
+    productVisible = shouldShow;
+    fixedProduct.classList.toggle('visible', productVisible);
+  }
+  if (productVisible) {
+    // Rotate on Y-axis based on scroll position within the features block
+    const sectionTop = featuresSection.offsetTop;
+    const sectionHeight = featuresSection.offsetHeight;
+    const localScroll = scrollY - sectionTop + window.innerHeight * 0.5;
+    const rotationProgress = Math.max(0, Math.min(1, localScroll / sectionHeight));
+    const angle = rotationProgress * 360;
+    fixedProductInner.style.transform = `rotateY(${angle}deg)`;
+  }
+}
+
+// Header
+const header = document.getElementById('header');
+
+// Form interaction → atmosphere intensifies
+const form = document.getElementById('cta-form');
+form.addEventListener('focusin', () => { formEngaged = true; });
+form.addEventListener('focusout', () => {
+  setTimeout(() => {
+    if (!form.contains(document.activeElement)) formEngaged = false;
+  }, 100);
+});
+form.addEventListener('submit', (e) => {
+  e.preventDefault();
+  alert('Спасибо! Мы свяжемся с вами в ближайшее время.');
+  form.reset();
+});
+
+// ─── Animation Loop ───
+const clock = new THREE.Clock();
+let mouseX = 0;
+let mouseY = 0;
+
+function animate() {
+  requestAnimationFrame(animate);
+
+  const dt = Math.min(clock.getDelta(), 0.1);
+  const time = performance.now() * 0.001;
+
+  // Smooth scroll interpolation
+  currentScroll += (targetScroll - currentScroll) * 0.07;
+  const maxH = Math.max(
+    document.querySelector('.content').scrollHeight - window.innerHeight,
+    1
+  );
+  const progress = Math.min(currentScroll / maxH, 1);
+
+  // Update fixed product image
+  updateProductVisibility(currentScroll);
+
+  // ─── Camera Motion ───
+  const targetZ = 18 - progress * 42;
+  const targetY = 6 - progress * 9;
+  const swayX = Math.sin(progress * 2.8) * 3.5 + (mouseX * 2);
+  const swayY = (mouseY * 1.5);
+  const targetX = swayX;
+
+  camera.position.x += (targetX - camera.position.x) * 0.06;
+  camera.position.y += ((targetY + swayY) - camera.position.y) * 0.06;
+  camera.position.z += (targetZ - camera.position.z) * 0.06;
+
+  camera.lookAt(
+    Math.sin(progress * 2.8) * 1.8,
+    camera.position.y - 2.5,
+    camera.position.z - 12
+  );
+
+  // ─── Atmosphere Uniforms ───
+  const fogDensity = 0.012 + progress * 0.045;
+  scene.fog = new THREE.Fog('#0A0806', 8 + progress * 8, 50 - progress * 20);
+
+  atmosphereLight.intensity = 2.5 + progress * 2.5 + (formEngaged ? 3.5 : 0);
+  atmosphereLight.position.x = Math.sin(time * 0.25) * 6;
+
+  // God ray opacity
+  const baseOpacity = 0.025 + progress * 0.09 + (formEngaged ? 0.14 : 0);
+  rayGroup.children.forEach(r => {
+    r.material.opacity = baseOpacity * (0.6 + Math.random() * 0.4);
+  });
+
+  // Particle opacity
+  particles.material.opacity = 0.12 + progress * 0.22 + (formEngaged ? 0.28 : 0);
+
+  // ─── Animate Geodes & Sparkles ───
+  geodesGroup.children.forEach(g => {
+    g.rotation.x += g.userData.rotSpeed * dt;
+    g.rotation.y += g.userData.rotSpeed * 0.7 * dt;
+    g.rotation.z += g.userData.rotSpeed * 0.3 * dt;
+    g.position.x = g.userData.baseX + Math.sin(time * 0.5 + g.userData.phase) * 2;
+    g.position.y = g.userData.baseY + Math.cos(time * 0.4 + g.userData.phase) * 1.5;
+    g.material.opacity = 0.08 + progress * 0.18 + (formEngaged ? 0.15 : 0);
+  });
+  sparkles.rotation.y += dt * 0.04;
+  sparkles.material.opacity = 0.2 + progress * 0.3 + (formEngaged ? 0.25 : 0);
+
+  // ─── DOF — blur distant peaks on scroll ───
+  bokehPass.uniforms['focus'].value = 14 - progress * 30;
+  bokehPass.uniforms['aperture'].value = 0.0004 + progress * 0.003 + (formEngaged ? 0.002 : 0);
+
+  // ─── Header ───
+  header.classList.toggle('scrolled', currentScroll > 50);
+
+  // ─── Render ───
+  composer.render();
+}
+
+// ─── Resize ───
+window.addEventListener('resize', () => {
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  composer.setSize(window.innerWidth, window.innerHeight);
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+});
+
+// ─── Start ───
+requestAnimationFrame(animate);
+
+// ─── GSAP Scroll Animations ───
+// Разбиваем заголовки галереи на отдельные слова
+document.querySelectorAll('.gallery-subtitle').forEach(subtitle => {
+  const words = subtitle.textContent.split(' ');
+  subtitle.innerHTML = '';
+  words.forEach(word => {
+    const span = document.createElement('span');
+    span.textContent = word;
+    subtitle.appendChild(span);
+  });
+});
+
+gsap.utils.toArray('.gallery-subtitle').forEach(subtitle => {
+  const spans = subtitle.querySelectorAll('span');
+  gsap.fromTo(spans, 
+    { opacity: 0, y: 80, rotationX: -50, scale: 0.8 },
+    {
+      opacity: 1, 
+      y: 0, 
+      rotationX: 0, 
+      scale: 1,
+      duration: 1.2,
+      stagger: 0.1, // Задержка между появлением каждого слова
+      ease: "back.out(1.4)",
+      scrollTrigger: {
+        trigger: subtitle,
+        start: "top 85%",
+      }
+    }
+  );
+});
+
+gsap.utils.toArray('.section h2, .section-label').forEach(el => {
+  gsap.fromTo(el, 
+    { opacity: 0, y: 50 },
+    {
+      opacity: 1, 
+      y: 0,
+      duration: 1,
+      ease: "power3.out",
+      scrollTrigger: {
+        trigger: el,
+        start: "top 85%",
+      }
+    }
+  );
+});
+
+gsap.utils.toArray('.usecase-item').forEach((el, i) => {
+  gsap.fromTo(el,
+    { opacity: 0, y: 40, scale: 0.95 },
+    {
+      opacity: 1, y: 0, scale: 1,
+      duration: 0.8,
+      ease: "back.out(1.2)",
+      delay: i * 0.05,
+      scrollTrigger: {
+        trigger: el,
+        start: "top 90%",
+      }
+    }
+  );
+});
+
+gsap.utils.toArray('.gallery-item').forEach((el, i) => {
+  gsap.fromTo(el,
+    { opacity: 0, y: 60, rotationX: -10 },
+    {
+      opacity: 1, y: 0, rotationX: 0,
+      duration: 1.2,
+      ease: "power4.out",
+      scrollTrigger: {
+        trigger: el,
+        start: "top 85%",
+      }
+    }
+  );
+  
+  // Parallax on images inside gallery
+  /* // Отключен параллакс внутри фото по просьбе пользователя
+  const img = el.querySelector('img, video');
+  if (img) {
+    gsap.to(img, {
+      y: () => window.innerHeight * 0.15,
+      ease: "none",
+      scrollTrigger: {
+        trigger: el,
+        start: "top bottom",
+        end: "bottom top",
+        scrub: true
+      }
+    });
+  }
+  */
+});
+
+// ─── Hero Scroll Video Control ───
+const heroVideo = document.getElementById('heroScrollVideo');
+// Используем requestAnimationFrame для более плавного скраббинга видео
+let videoTargetTime = 0;
+let videoCurrentTime = 0;
+
+heroVideo.addEventListener('loadedmetadata', () => {
+  const duration = heroVideo.duration;
+  
+  // Создаем ScrollTrigger, который просто обновляет переменную targetTime, а не само видео
+  ScrollTrigger.create({
+    trigger: ".content",
+    start: "top top",
+    end: "bottom bottom",
+    onUpdate: (self) => {
+      videoTargetTime = self.progress * duration;
+    }
+  });
+  
+  // Плавный интерполятор (lerp) для времени видео
+  function renderVideoFrame() {
+    videoCurrentTime += (videoTargetTime - videoCurrentTime) * 0.05; // Уменьшил коэффициент для ЕЩЕ большей плавности (0.05 вместо 0.08)
+    
+    // Обновляем время только если разница ощутима, чтобы не дергать видео зря
+    if (Math.abs(videoTargetTime - videoCurrentTime) > 0.01) {
+      // Браузеры иногда блокируют частую смену currentTime, поэтому мы это делаем плавно
+      heroVideo.currentTime = videoCurrentTime;
+    }
+    requestAnimationFrame(renderVideoFrame);
+  }
+  renderVideoFrame();
+});
+// Убедимся что видео начало грузиться
+heroVideo.load();
+</script>
+</body>
+</html>
