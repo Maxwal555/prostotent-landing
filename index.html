@@ -40,7 +40,7 @@
   .feature-row p{font-size:14px;color:var(--white-dim);line-height:1.7;font-weight:400;text-transform:none;letter-spacing:.02em;max-width:420px}
   .gallery-section{padding:0;border-top:2px dashed rgba(240,240,250,.08)}
   .gallery-section .section{border-top:none;margin-bottom:0;padding-bottom:80px}
-  .gallery-subsection{margin-top:120px;padding-top:60px;border-top:2px dashed rgba(240,240,250,.08)}
+  .gallery-subsection{margin-top:120px;padding-top:60px;border-top:2px dashed rgba(240,240,250,.08);min-height:100vh;display:flex;flex-direction:column;justify-content:center}
   .gallery-subtitle{font-size:clamp(48px,8vw,88px);font-weight:900;letter-spacing:-.02em;color:var(--white);margin-bottom:16px;padding:0 56px;line-height:.88}
   .gallery-subspec{font-size:12px;font-weight:600;letter-spacing:.2em;color:var(--white-dim);margin-bottom:48px;padding:0 56px}
   .gallery-strip{display:flex;gap:2px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding:0 0 0 56px;scrollbar-width:none}
@@ -133,7 +133,39 @@ gsap.utils.toArray('.gallery-subspec').forEach(s=>{gsap.fromTo(s,{opacity:0,y:20
 gsap.utils.toArray('.section h2, .section-label').forEach(el=>{gsap.fromTo(el,{opacity:0,y:40},{opacity:1,y:0,duration:.9,ease:"power3.out",scrollTrigger:{trigger:el,start:"top 85%"}})});
 gsap.utils.toArray('.feature-row').forEach((el,i)=>{gsap.fromTo(el,{opacity:0,x:-30},{opacity:1,x:0,duration:.7,ease:"power2.out",delay:i*.08,scrollTrigger:{trigger:el,start:"top 88%"}})});
 gsap.utils.toArray('.usecase-row').forEach((el,i)=>{gsap.fromTo(el,{opacity:0,x:-20},{opacity:1,x:0,duration:.6,ease:"power2.out",delay:i*.06,scrollTrigger:{trigger:el,start:"top 90%"}})});
-gsap.utils.toArray('.gallery-item').forEach((el,i)=>{gsap.fromTo(el,{opacity:0,scale:.96},{opacity:1,scale:1,duration:.9,ease:"power3.out",delay:i*.1,scrollTrigger:{trigger:el,start:"top 85%"}})});
+
+// ═══ Gallery pin + stagger reveal ═══
+gsap.utils.toArray('.gallery-subsection').forEach((section) => {
+  const items = section.querySelectorAll('.gallery-item');
+  const count = items.length;
+  
+  // Set initial state: all photos invisible
+  gsap.set(items, { opacity: 0, x: 80, scale: 0.92 });
+  
+  ScrollTrigger.create({
+    trigger: section,
+    start: 'top top',
+    end: `+=${count * 250 + 200}`,
+    pin: true,
+    pinSpacing: true,
+    scrub: 1,
+    onUpdate: (self) => {
+      // Reveal photos one by one based on scroll progress
+      const progressPerItem = 1 / (count + 0.5);
+      items.forEach((item, i) => {
+        const itemStart = i * progressPerItem;
+        const itemProgress = Math.max(0, Math.min(1, (self.progress - itemStart) / progressPerItem));
+        gsap.to(item, {
+          opacity: itemProgress,
+          x: 80 * (1 - itemProgress),
+          scale: 0.92 + 0.08 * itemProgress,
+          duration: 0,
+          overwrite: true
+        });
+      });
+    }
+  });
+});
 
 const hd=document.getElementById('header');
 addEventListener('scroll',()=>{hd.classList.toggle('scrolled',scrollY>50)},{passive:true});
